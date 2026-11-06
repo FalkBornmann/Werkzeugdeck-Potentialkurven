@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Potentialkurven · Werkzeugdeck</title>
+<style>
+:root{font:16px system-ui;color:#132c3c;background:#eef4f7}
+*{box-sizing:border-box}body{margin:0}main,header>div{max-width:1050px;margin:auto;padding:24px}
+header{background:#123548;color:white}header a{color:#c9e8ec}h1{margin:.3em 0}
+section{background:white;border:1px solid #cbdde5;border-radius:14px;padding:20px;margin-bottom:16px}
+h2{margin-top:0}.row{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+label{display:grid;gap:5px}input,select,button{font:inherit;padding:7px;max-width:100%}
+input[type=number]{width:130px}button{cursor:pointer}canvas{display:block;width:100%;height:auto}
+output{display:block;margin:12px 0;font-weight:650}p{line-height:1.5}
+</style>
+<header><div><a href="https://werkzeugdeck.pages.dev/#elektrochemie">← Werkzeugdeck</a><h1>Potentialkurven</h1>
+<p>Potentialverläufe und Polarisationskurven aus VoltaLab auswerten.</p></div></header>
+<main>
+<section>
+<h2>Messdatei öffnen</h2>
+<label>VoltaLab-Kurve (.CRV)<input id="file" type="file" accept=".crv"></label>
+<p id="status" role="status">TE-Dateien enthalten Zeit und Potential. EIT-Dateien enthalten zusätzlich Stromwerte. Die Datei wird im Browser verarbeitet.</p>
+</section>
+<section id="analysis" hidden>
+<h2>Kurve auswerten</h2>
+<div class="row">
+<label>Auswertung<select id="mode"><option value="time">Ruhepotential über Zeit</option><option value="polar">Lineare Polarisation · Rₚ</option><option value="tafel">Logarithmische Polarisation · Tafel</option></select></label>
+<label><span id="lowerLabel"></span><input id="lower" type="number" step="any"></label>
+<label><span id="upperLabel"></span><input id="upper" type="number" step="any"></label>
+<button id="reset" type="button">Gesamter Bereich</button>
+<label><span>Diagramm</span><select id="view"><option value="all">Gesamte Kurve</option><option value="window">Auswahl vergrößern</option></select></label>
+</div>
+<div class="row">
+<label><span>Automatische Auswertung</span><input id="automatic" type="checkbox" checked></label>
+<label id="tailSetting">Letzter Anteil (%)<input id="tail" type="number" min="1" max="100" value="20"></label>
+<label id="linearSetting" hidden>Fit um Stromnull ± (mV)<input id="linearWidth" type="number" min="0" step="any" value="20"></label>
+<button id="runAutomatic" type="button">Automatik neu anwenden</button>
+</div>
+<p id="autoStatus" role="status"></p>
+<div id="polarOptions" hidden>
+<p id="fitHint"></p>
+<div class="row">
+<label>Stromeinheit der Datei<select id="currentUnit"><option value="">Bitte wählen</option><option>A</option><option>mA</option><option>µA</option><option>nA</option></select></label>
+<label>Exponierte Fläche (optional)<input id="area" type="number" step="any" min="0"></label>
+<label>Flächeneinheit<select id="areaUnit"><option>cm²</option><option>mm²</option><option>m²</option></select></label>
+<button id="headerArea" type="button" hidden>Flächenvorschlag übernehmen</button>
+<label>Erster Messpunkt<input id="first" type="number" step="1" min="1"></label>
+<label>Letzter Messpunkt<input id="last" type="number" step="1" min="1"></label>
+</div>
+<div id="stern" hidden>
+<p>Gib für die Berechnung nach Stern–Geary die Beträge der anodischen und kathodischen Tafelsteigung ein. Verwende Werte, die für das untersuchte System bestimmt oder fachlich begründet wurden.</p>
+<div class="row">
+<label>β anodisch (mV/Dekade)<input id="betaA" type="number" min="0" step="any"></label>
+<label>β kathodisch (mV/Dekade)<input id="betaC" type="number" min="0" step="any"></label>
+</div></div>
+<div id="tafelOptions" hidden>
+<p>Wähle zwei getrennte, geradlinige Potentialfenster im aktiven Bereich. Die Auswertung verwendet negative Ströme für den kathodischen und positive Ströme für den anodischen Fit. Nullwerte erscheinen an der markierten Darstellungsgrenze und bleiben aus dem Fit ausgeschlossen.</p>
+<div class="row">
+<label>Kathodisch von (mV)<input id="cMin" type="number" step="any"></label>
+<label>Kathodisch bis (mV)<input id="cMax" type="number" step="any"></label>
+<label>Anodisch von (mV)<input id="aMin" type="number" step="any"></label>
+<label>Anodisch bis (mV)<input id="aMax" type="number" step="any"></label>
+</div>
+<div class="row">
+<label>OCP (mV)<input id="ocp" type="number" step="any"></label>
+<label>Suchzone ± (mV)<input id="zone" type="number" min="0" value="100"></label>
+<label>Segmentbreite (mV)<input id="segment" type="number" min="0" value="50"></label>
+
+</div>
+<details>
+<summary>Passivierung und Grenzstrom markieren</summary>
+<p>Trage die aus der Kurve abgelesenen Kennwerte ein. Die Markierungen erscheinen im Diagramm und im PNG.</p>
+<div class="row">
+<label>Passivierungspotential (mV)<input id="passivation" type="number" step="any"></label>
+<label>Transpassives Potential (mV)<input id="transpassive" type="number" step="any"></label>
+<label>Passive Stromdichte (A/cm²)<input id="passive" type="number" min="0" step="any"></label>
+<label>Grenzstromdichte (A/cm²)<input id="limiting" type="number" min="0" step="any"></label>
+</div></details>
+</div></div>
+<output id="result" aria-live="polite"></output>
+<canvas id="plot" width="1200" height="540" role="img" aria-label="Diagramm der Messkurve"></canvas>
+<div class="row"><button id="csv" type="button">Auswahl als CSV</button><button id="png" type="button">Diagramm als PNG</button></div>
+</section>
+</main>
+<footer style="max-width:1050px;margin:auto;padding:0 24px 24px">
+<p><a href="https://werkzeugdeck.pages.dev/#elektrochemie">Werkzeugdeck · Laborwerkzeuge</a></p>
+<p><strong>Privates Projekt in Entwicklung</strong> · von einer Privatperson erstellt.</p>
+<details><summary>Nutzungshinweise und Haftung</summary>
+<p>Dieses Tool unterstützt das Lernen und die explorative Auswertung. Ergebnisse hängen von der Messqualität, den Eingaben, dem gewählten Modell und den Fitfenstern ab. Automatische Fits sind Vorschläge. Prüfe bei Tafel-Fits insbesondere, ob die gewählten Bereiche aktivierungskontrolliert sind. Prüfe Ergebnisse unabhängig, bevor du sie für Berichte, Freigaben oder sicherheitsrelevante Entscheidungen verwendest. Für Richtigkeit, Vollständigkeit, Verfügbarkeit und Eignung wird keine Garantie übernommen. Es gelten die gesetzlichen Haftungsregelungen.</p>
+<p>Die Entwicklung wurde durch KI unterstützt. Die App selbst nutzt keine KI-Dienste. Der Browser verarbeitet Messdateien und erstellt Exporte auf deinem Gerät. Beim Abruf der Onlineversion fallen beim Hostinganbieter technisch bedingte Verbindungsdaten an.</p>
+</details>
+</footer>
+<script src="./potentialkurven.js" defer></script>
+</html>
