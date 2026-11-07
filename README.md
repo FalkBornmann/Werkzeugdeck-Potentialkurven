@@ -16,3 +16,6 @@ Die Oberfläche folgt KeksUndTee: dunkelgrüner Kopfbereich, sandfarbene Akzente
 ## Werkzeugdeck-Katalog
 Dieses Repository enthält ausschließlich das Tool. Fachgebiete, Navigation, veröffentlichter Versionsstand und gemeinsame Auslieferung werden im [Werkzeugdeck-Katalog](https://github.com/FalkBornmann/Werkzeugdeck) gepflegt.
 Online: https://werkzeugdeck.pages.dev/tools/potentialkurven/
+
+## Grafikexport
+Die erzeugten Diagramme und Grafiken lassen sich als PNG und als echte SVG-Vektorgrafik speichern. SVG enthält skalierbare Linien, Flächen und Text. Beide Formate übernehmen den gewählten Darstellungszustand; Exporte entstehen lokal im Browser.

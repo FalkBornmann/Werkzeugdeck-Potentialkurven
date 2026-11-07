@@ -65,6 +65,7 @@ if (typeof document !== "undefined") {
   const canvas = get("plot");
   const ctx = canvas.getContext("2d");
   let curve, selected, fileName;
+  let plotState;
   let automaticWindows = new Map();
   let loadVersion = 0;
   const polar = () => value("mode") !== "time";
@@ -99,13 +100,14 @@ if (typeof document !== "undefined") {
     render();
   }
 
-  function draw(points, fits, corrosion) {
+  function draw(points, fits, corrosion, context = ctx) {
+    plotState = {points, fits, corrosion};
     const visible = value("view") === "window" ? selected : points;
     const unit = value("currentUnit");
     const xLabel = polar() ? "Potential (mV)" : "Zeit (s)";
     const left = 170, right = 1165, top = 32, bottom = 450;
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
     if (!visible.length || (log() && !(area() > 0 && factor()))) return;
     function padded([min, max]) {
       const pad = (max - min) * 0.05 || Math.max(Math.abs(min) * 0.05, 1e-9);
@@ -128,78 +130,78 @@ if (typeof document !== "undefined") {
       normalized ? "Stromdichte (" + displayUnit + "/cm²)" : "Strom (" + (unit ? "mA" : "Dateieinheit") + ")";
     const px = v => left + (v - xmin) / (xmax - xmin) * (right - left);
     const py = v => bottom - (v - ymin) / (ymax - ymin) * (bottom - top);
-    ctx.font = "20px system-ui";
-    ctx.fillStyle = "#132c3c";
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "#d4e1e7";
+    context.font = "20px system-ui";
+    context.fillStyle = "#132c3c";
+    context.lineWidth = 1;
+    context.strokeStyle = "#d4e1e7";
     for (let tick = 0; tick <= 5; tick++) {
       const fraction = tick / 5;
       const gx = left + fraction * (right - left);
-      ctx.beginPath();
-      ctx.moveTo(gx, top);
-      ctx.lineTo(gx, bottom);
-      ctx.stroke();
-      ctx.textAlign = "center";
-      ctx.fillText(show((xmin + fraction * (xmax - xmin)) * (polar() ? 1000 : 1)), gx, bottom + 28);
+      context.beginPath();
+      context.moveTo(gx, top);
+      context.lineTo(gx, bottom);
+      context.stroke();
+      context.textAlign = "center";
+      context.fillText(show((xmin + fraction * (xmax - xmin)) * (polar() ? 1000 : 1)), gx, bottom + 28);
     }
     const ticks = log()
       ? Array.from({ length: ymax - ymin + 1 }, (_, index) => ymin + index)
       : Array.from({ length: 6 }, (_, index) => ymin + index / 5 * (ymax - ymin));
     const exponent = value => String(value).replace(/[\d-]/g, digit => "⁰¹²³⁴⁵⁶⁷⁸⁹⁻"[digit === "-" ? 10 : Number(digit)]);
-    ctx.textAlign = "right";
+    context.textAlign = "right";
     for (const tick of ticks) {
       const gy = py(tick);
-      ctx.beginPath();
-      ctx.moveTo(left, gy);
-      ctx.lineTo(right, gy);
-      ctx.stroke();
+      context.beginPath();
+      context.moveTo(left, gy);
+      context.lineTo(right, gy);
+      context.stroke();
       const label = log() ? (hasZeros && tick === floor ? "0*" : "10" + exponent(tick)) : show(tick * yScale);
-      ctx.fillText(label, left - 9, gy + 6);
+      context.fillText(label, left - 9, gy + 6);
     }
     if (hasZeros) {
-      ctx.textAlign = "left";
-      ctx.fillText("* Nullwerte an der Darstellungsgrenze", left, 24);
+      context.textAlign = "left";
+      context.fillText("* Nullwerte an der Darstellungsgrenze", left, 24);
     }
-    ctx.textAlign = "center";
-    ctx.fillText(xLabel, (left + right) / 2, 520);
-    ctx.save();
-    ctx.translate(23, (top + bottom) / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText(yLabel, 0, 0);
-    ctx.restore();
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(left, top, right - left, bottom - top);
-    ctx.clip();
-    ctx.strokeStyle = "#1746bc";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
+    context.textAlign = "center";
+    context.fillText(xLabel, (left + right) / 2, 520);
+    context.save();
+    context.translate(23, (top + bottom) / 2);
+    context.rotate(-Math.PI / 2);
+    context.fillText(yLabel, 0, 0);
+    context.restore();
+    context.save();
+    context.beginPath();
+    context.rect(left, top, right - left, bottom - top);
+    context.clip();
+    context.strokeStyle = "#1746bc";
+    context.lineWidth = 2;
+    context.beginPath();
     visible.forEach((point, index) => {
       const method = index && (value("view") !== "window" ||
         point.index === visible[index - 1].index + 1) ? "lineTo" : "moveTo";
-      ctx[method](px(x(point)), py(hasZeros && point.i === 0 ? floor : y(point)));
+      context[method](px(x(point)), py(hasZeros && point.i === 0 ? floor : y(point)));
     });
-    ctx.stroke();
-    ctx.fillStyle = "#00736f";
+    context.stroke();
+    context.fillStyle = "#00736f";
     if (!log() && selected.length < visible.length) {
-      for (const point of selected) ctx.fillRect(px(x(point)) - 2, py(y(point)) - 2, 4, 4);
+      for (const point of selected) context.fillRect(px(x(point)) - 2, py(y(point)) - 2, 4, 4);
     }
     for (const fit of fits) {
       const start = fit.lower ?? extent(selected, x)[0];
       const end = fit.upper ?? extent(selected, x)[1];
-      ctx.strokeStyle = "#ac471c";
-      ctx.setLineDash([8, 5]);
-      ctx.beginPath();
-      ctx.moveTo(px(start), py(fit.predict(start)));
-      ctx.lineTo(px(end), py(fit.predict(end)));
-      ctx.stroke();
+      context.strokeStyle = "#ac471c";
+      context.setLineDash([8, 5]);
+      context.beginPath();
+      context.moveTo(px(start), py(fit.predict(start)));
+      context.lineTo(px(end), py(fit.predict(end)));
+      context.stroke();
     }
     if (log()) {
-      ctx.setLineDash([4, 5]);
-      ctx.strokeStyle = "#00736f";
-      ctx.fillStyle = "#00736f";
-      ctx.font = "16px system-ui";
-      ctx.textAlign = "left";
+      context.setLineDash([4, 5]);
+      context.strokeStyle = "#00736f";
+      context.fillStyle = "#00736f";
+      context.font = "16px system-ui";
+      context.textAlign = "left";
       const markers = [
         [volts("passivation"), "E Passivierung", true],
         [volts("transpassive"), "E transpassiv", true],
@@ -210,19 +212,19 @@ if (typeof document !== "undefined") {
         if (!Number.isFinite(position)) continue;
         const gx = vertical ? px(position) : left;
         const gy = vertical ? top : py(position);
-        ctx.beginPath();
-        ctx.moveTo(gx, gy);
-        ctx.lineTo(vertical ? gx : right, vertical ? bottom : gy);
-        ctx.stroke();
-        ctx.fillText(label, gx + 5, vertical ? top + 20 : gy - 5);
+        context.beginPath();
+        context.moveTo(gx, gy);
+        context.lineTo(vertical ? gx : right, vertical ? bottom : gy);
+        context.stroke();
+        context.fillText(label, gx + 5, vertical ? top + 20 : gy - 5);
       }
       if (corrosion) {
-        ctx.beginPath();
-        ctx.arc(px(corrosion.e), py(corrosion.logJ), 5, 0, 2 * Math.PI);
-        ctx.fill();
+        context.beginPath();
+        context.arc(px(corrosion.e), py(corrosion.logJ), 5, 0, 2 * Math.PI);
+        context.fill();
       }
     }
-    ctx.restore();
+    context.restore();
   }
 
   function render() {
@@ -304,6 +306,7 @@ if (typeof document !== "undefined") {
     get("result").textContent = details.join(" · ");
     get("csv").disabled = !selected.length;
     get("png").disabled = (value("view") === "window" && !selected.length) || (log() && !(area() > 0 && factor()));
+    get("svg").disabled = get("png").disabled;
     draw(curve.points, fits, corrosion);
   }
 
@@ -481,6 +484,14 @@ if (typeof document !== "undefined") {
       rows.push([point.index, point.t, point.e * 1000, ...(hasCurrent ? [point.i] : [])]);
     }
     download(new Blob([rows.map(row => row.join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" }), "csv");
+  });
+  get("svg").addEventListener("click", () => {
+    if (!plotState || get("svg").disabled) return;
+    const context = new SvgContext(canvas.width, canvas.height);
+    draw(plotState.points, plotState.fits, plotState.corrosion, context);
+    download(new Blob([context.toSvg(fileName + " · " + value("mode"), get("result").textContent)], {
+      type: "image/svg+xml;charset=utf-8"
+    }), "svg");
   });
   get("png").addEventListener("click", () => {
     canvas.toBlob(blob => { if (blob) download(blob, "png"); });
