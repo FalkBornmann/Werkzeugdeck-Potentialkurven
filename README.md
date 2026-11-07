@@ -11,3 +11,8 @@ Messdaten und Exporte werden im Browser verarbeitet.
 ## Theorie und Bedienoberfläche
 
 Die Oberfläche folgt KeksUndTee: dunkelgrüner Kopfbereich, sandfarbene Akzente und helle Karten mit responsiven Eingaben. Eine sichtbare Einführung erklärt die Grundlagen; die ausführliche Theorie lässt sich mit Herleitungen, Rechenverfahren, Grenzen und Fachquellen aufklappen. Nutzungshinweise erläutern KI-Unterstützung, Messdatenverarbeitung, Exporte, Hosting und Haftung.
+
+
+## Werkzeugdeck-Katalog
+Dieses Repository enthält ausschließlich das Tool. Fachgebiete, Navigation, veröffentlichter Versionsstand und gemeinsame Auslieferung werden im [Werkzeugdeck-Katalog](https://github.com/FalkBornmann/Werkzeugdeck) gepflegt.
+Online: https://werkzeugdeck.pages.dev/tools/potentialkurven/
