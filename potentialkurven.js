@@ -496,4 +496,14 @@ if (typeof document !== "undefined") {
   get("png").addEventListener("click", () => {
     canvas.toBlob(blob => { if (blob) download(blob, "png"); });
   });
+  WDExports.mount({
+    anchor: get("png").parentElement,
+    defaultItem: "diagramm",
+    items: [{
+      id: "diagramm", label: "Aktuelles Diagramm",
+      enabled: () => !get("analysis").hidden && !get("png").disabled,
+      save: format => get(format).click()
+    }],
+    legacyButtons: [get("png"), get("svg")]
+  });
 }

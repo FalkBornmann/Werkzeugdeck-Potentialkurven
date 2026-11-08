@@ -1,0 +1,21 @@
+:root {--topic-dark:#193e35;--topic-accent:#24745d;--topic-light:#edf5ee;--topic-sand:#dbac6b}
+[data-domain="elektrochemie"] {--topic-dark:#163e50;--topic-accent:#176b8b;--topic-light:#edf5fa}
+[data-domain="stofftransport"] {--topic-dark:#193e35;--topic-accent:#24745d;--topic-light:#edf5ee}
+[data-domain="beschichtungen"] {--topic-dark:#4a3455;--topic-accent:#77508c;--topic-light:#f4eff7}
+[data-domain="werkstofftechnik"] {--topic-dark:#513821;--topic-accent:#8b5e2f;--topic-light:#f8f1e8}
+body header {background:var(--topic-dark);color:#fff;border-bottom:6px solid var(--topic-sand)}
+.tool-context {display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;max-width:1180px;margin:0 auto;padding:14px 28px;border-bottom:1px solid #d5dfd8;background:var(--topic-light);color:var(--topic-dark)}
+.tool-context a {color:var(--topic-dark);font-weight:650}
+.wd-activity {display:inline-flex;align-items:center;gap:7px;font-weight:650}
+.wd-icon {width:22px;height:22px;flex:none;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wd-export-menu {border:1px solid #cbdad1;border-left:4px solid var(--topic-accent);border-radius:10px;background:#fff;padding:18px;width:100%;margin:12px 0}
+.wd-export-menu h3 {margin:0 0 12px;font-size:1.05rem}
+.wd-export-fields {display:flex;flex-wrap:wrap;align-items:end;gap:12px}
+.wd-export-fields label {display:flex;flex-direction:column;gap:5px;font-size:14px;font-weight:650;min-width:150px;flex:1}
+.wd-export-fields select,.wd-export-fields button {font:inherit;min-height:44px;border:1px solid #9ab4a5;border-radius:6px;padding:8px 12px;background:#fff;color:#183d36;width:auto}
+.wd-export-fields [data-export-save] {background:var(--topic-dark);color:white;font-weight:700}
+.wd-export-menu p {font-size:13px;margin:10px 0 0;color:#52695f}
+.wd-export-menu [hidden],button[hidden] {display:none!important}
+.wd-export-menu :focus-visible {outline:3px solid #aa792e;outline-offset:3px}
+.wd-export-fields button:disabled {opacity:.5;cursor:default}
+@media(max-width:600px){.tool-context{padding:12px 18px}.wd-export-fields label{min-width:0;flex-basis:100%}.wd-export-fields button{flex:1}}
